@@ -46,17 +46,7 @@ src/
 ```
 ---
 
-## 🔧 Instalação e Execução
 
-### 1️⃣ Instalar dependências
-```
-npm install
-```
-2️⃣ Rodar o projeto
-npm run dev
-
-Acessar em:
-http://localhost:5173
 
 📊 Exemplo de Gráfico (Chart.js)
 ```
