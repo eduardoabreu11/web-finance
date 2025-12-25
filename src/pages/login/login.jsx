@@ -2,16 +2,48 @@ import { Link, useNavigate } from "react-router-dom";
 import "./login.css";
 import logo from "../../assets/logo.png";
 import bg from "../../assets/background.png";
+import {api, HandleErrors} from "../../constants/api.js";
+import { useContext, useState } from "react";
+import {AuthContext} from "../../contexts/auth.jsx"
 
 
 
 function Login(){
 
+    const {user, setUser} = useContext(AuthContext);
     const navigate = useNavigate();
+    const [email, setEmail] = useState("");
+    const [senha, setSenha] = useState("");
+    const [msg, setMsg] = useState("");
+    const [loading, setLoading] = useState(false);
 
-    function acessar(){
-        navigate("/lancamentos")
-    }
+
+   async function acessar() {
+  try {
+
+    setLoading(true)
+    const response = await api.post("usuarios/login", {
+      email,
+      senha
+    });
+        
+    localStorage.setItem("sessionToken", response.data.token);
+    localStorage.setItem("sessionId", response.data.id_usuario);
+    localStorage.setItem("sessionNome", response.data.nome);
+    localStorage.setItem("sessionEmail", response.data.email);
+    setUser({
+        nome:response.data.nome,
+        email:response.data.email,
+        id_usuario:response.data.id_usuario
+    });
+    
+    navigate("/lancamentos");
+
+  } catch (error)  {
+    setLoading(false)
+    setMsg(HandleErrors(error));
+  }
+}
 
 
     return <div className="row">
@@ -27,18 +59,31 @@ function Login(){
 
                 <form className="form-signin mb-5">
                         <div className="form-floating mb-1">
-                            <input type="email" className="form-control" id="floatingInput" placeholder="E-mail"/>
-                            <label htmlFor="floatingInput">E-mail</label>
+                            <input type="email" className="form-control" id="floatingEmail" placeholder="E-mail" 
+                            onChange={(e)=>setEmail(e.target.value)}/>
+                            <label htmlFor="floatingEmail">E-mail</label>
                         </div>
 
                         <div className="form-floating mb-1">
-                            <input type="password" className="form-control" id="floatingInput" placeholder="Senha"/>
-                            <label htmlFor="floatingInput">Senha</label>
+                            <input type="password" className="form-control" id="floatingSenha" placeholder="Senha"
+                            onChange={(e)=>setSenha(e.target.value)}/>
+                            <label htmlFor="floatingSenha">Senha</label>
                         </div>
 
-                        <button type="button" onClick={acessar} className="btn btn-purple btn-lg w-100">
-                            Acessar
+                        <button disabled={loading} type="button" onClick={acessar} className="btn btn-purple btn-lg w-100">
+                            {
+                                loading ? <span>enviando...</span> : <span>acessar</span>
+                            }
+                            
                         </button>
+
+                        {
+                         
+                          msg.length > 0 &&
+                        <div className="alert alert-danger mt-2" role="start">
+                            {msg}
+                        </div>
+                        }
 
                         
                 </form>

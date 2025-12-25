@@ -1,11 +1,56 @@
 import "./register.css";
 import logo from "../../assets/logo.png";
 import bg from "../../assets/background.png";
-import { Link } from "react-router-dom";
+import {api, HandleErrors} from "../../constants/api.js";
+import { useState, useContext } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import {AuthContext} from "../../contexts/auth.jsx"
 
 
 function Register(){
 
+    const navigate = useNavigate();
+    const {user, setUser} = useContext(AuthContext);
+    const [msg, setMsg] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [email, setEmail] = useState("");
+    const [senha, setSenha] = useState("");
+    const [senha2, setSenha2] = useState("");
+    const [nome, setNome] = useState("");
+
+   async function CriarConta(){
+
+        if (senha !== senha2) {
+        setMsg("As senhas não conferem");
+        return; 
+    }
+        try {
+          setLoading(true)
+           const response = await api.post("usuarios/registro", {
+                email,
+                senha,
+                senha2,
+                nome
+                });
+
+            console.log(response.data);
+        
+    localStorage.setItem("sessionToken", response.data.token);
+    localStorage.setItem("sessionId", response.data.id_usuario);
+    localStorage.setItem("sessionNome", response.data.nome);
+    localStorage.setItem("sessionEmail", response.data.email);
+    setUser({
+        nome:response.data.nome,
+        email:response.data.email,
+        id_usuario:response.data.id_usuario
+    });
+    navigate("/lancamentos");
+
+  } catch (error)  {
+    setLoading(false)
+    setMsg(HandleErrors(error));
+  }
+    }
 
 
 
@@ -23,30 +68,50 @@ function Register(){
                 <form className="form-signin mb-5">
 
                         <div className="form-floating mb-1">
-                            <input type="text" className="form-control" id="floatingInput" placeholder="Nome"/>
-                            <label htmlFor="floatingInput">nome</label>
+                            <input onChange={(e)=>setNome(e.target.value)} type="text" className="form-control" id="floatingNome" placeholder="Nome"/>
+                            <label htmlFor="floatingNome">nome</label>
                         </div>
 
 
                         <div className="form-floating mb-1">
-                            <input type="email" className="form-control" id="floatingInput" placeholder="E-mail"/>
-                            <label htmlFor="floatingInput">E-mail</label>
+                            <input onChange={(e)=>setEmail(e.target.value)} type="email" className="form-control" id="floatingEmail" placeholder="E-mail"/>
+                            <label htmlFor="floatingEmail">E-mail</label>
                         </div>
 
                         <div className="form-floating mb-1">
-                            <input type="password" className="form-control" id="floatingInput" placeholder="Senha"/>
-                            <label htmlFor="floatingInput">Senha</label>
+                            <input onChange={(e)=>setSenha(e.target.value)} type="password" className="form-control" id="floatingSenha" placeholder="Senha"/>
+                            <label htmlFor="floatingSenha">Senha</label>
                         </div>
 
                         <div className="form-floating mb-1">
-                            <input type="password" className="form-control" id="floatingInput" placeholder="Senha"/>
-                            <label htmlFor="floatingInput">Confirme sua senha</label>
+                            <input onChange={(e)=>setSenha2(e.target.value)} type="password" className="form-control" id="floatingSenha2" placeholder="Senha"/>
+                            <label htmlFor="floatingSenha2">Confirme sua senha</label>
                         </div>
 
-                        <button type="button" className="btn btn-purple btn-lg w-100">
-                            Criar minha conta
+                        <button disabled={loading} onClick={CriarConta} type="button" className="btn btn-purple btn-lg w-100">
+                            {
+                                loading ? <div className="d-flex justify-content-center gap-2">
+
+                                <div className="spinner-border" role="status">
+                                <span className="visually-hidden">Loading...</span>
+                                </div>
+                                 <span>criando...</span> 
+                                 
+                                 </div> : <span>criar conta</span>
+                            }
+                            
                             
                         </button>
+
+                        {
+                         
+                          msg.length > 0 &&
+                        <div className="alert alert-danger mt-2" role="start">
+                            {msg}
+                        </div>
+
+                        
+                        }
 
                         
                 </form>
